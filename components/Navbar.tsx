@@ -14,13 +14,17 @@ const Navbar: React.FC = () => {
     navigate('/');
   };
 
+  const handleMobileLinkClick = () => {
+    setIsOpen(false);
+  };
+
   return (
     <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xl hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center shadow-md shadow-indigo-200 dark:shadow-none">
-              <i className="fa-solid fa-gem"></i>
+              <i className="fa-solid fa-chart-line"></i>
             </div>
             <span className="tracking-tight">Nexvest</span>
           </Link>
@@ -89,11 +93,11 @@ const Navbar: React.FC = () => {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden py-4 border-t border-slate-100 dark:border-slate-800 space-y-2 animate-fade-in">
-            <Link to="/about" className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">About</Link>
+            <Link to="/about" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">About</Link>
             {user ? (
               <>
-                <Link to="/advisor" className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">New Plan</Link>
-                <Link to="/history" className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">History</Link>
+                <Link to="/advisor" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">New Plan</Link>
+                <Link to="/history" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">History</Link>
                 <button 
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl font-bold"
@@ -103,8 +107,8 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">Login</Link>
-                <Link to="/register" className="block px-4 py-3 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl">Register</Link>
+                <Link to="/login" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">Login</Link>
+                <Link to="/register" onClick={handleMobileLinkClick} className="block px-4 py-3 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl">Register</Link>
               </>
             )}
           </div>

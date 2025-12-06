@@ -2,7 +2,7 @@
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { InvestmentProfile, PortfolioAllocation, StockRecommendation, EquityBreakdown } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: 'AIzaSyBT94ZS6t85fvOcGa27CbBLO1qlvhoaPTU' });
 
 export const generateAIExplanation = async (
   profile: InvestmentProfile,
@@ -12,33 +12,23 @@ export const generateAIExplanation = async (
 ): Promise<string> => {
   
   const prompt = `
-    You are an expert financial advisor. Analyze this investor profile and return a structured response.
-
-    **User Profile:**
-    - Age: ${profile.age}
-    - Income: ${profile.currency} ${profile.monthlyIncome}
-    - Risk Preference: ${profile.riskTolerance}
-    - Goal: ${profile.financialGoal} (${profile.investmentHorizonYears} years)
-    - Monthly Investment: ${profile.currency} ${profile.monthlySavingsTarget}
-
-    **Generated Plan:**
-    - Type: ${investorType}
-    - Allocation: Equity ${allocation.equity}%, Debt ${allocation.debt}%, Gold ${allocation.gold}%
-    - Projected Wealth: ${profile.currency} ${projectedCorpus.toLocaleString()}
-
-    **Instructions:**
-    Provide a response in exactly 3 sections using markdown bullet points. Do not use generic introductory filler text.
+    You are a friendly financial guide explaining an investment plan to a beginner (Explain Like I'm 5).
+    Do NOT use big financial words. Keep it extremely simple.
+    Start directly with the first header.
     
-    ### 1. Strategy Analysis
-    - Explain why this specific allocation (${allocation.equity}/${allocation.debt}) fits their ${profile.riskTolerance} preference and age.
-    - Mention how it helps achieve the goal of "${profile.financialGoal}".
+    **User:** Age ${profile.age}, Goal: ${profile.financialGoal}
+    **Plan:** Equity ${allocation.equity}%, Debt ${allocation.debt}%, Gold ${allocation.gold}%
 
-    ### 2. Risk & Reality Check
-    - Highlight one specific risk they face (e.g., inflation, market volatility, or too conservative).
-    - Give a "Real talk" tip on sticking to the plan.
+    Return exactly these 3 brief sections formatted with Markdown headers:
 
-    ### 3. Actionable Advice
-    - Provide 2 short, bulleted tips for a ${profile.age}-year-old investor.
+    ### The Simple Plan
+    [One simple sentence. Example: "We are buying pieces of big companies so your money grows fast."]
+
+    ### Why this fits you
+    [One simple sentence. Example: "Since you are young, you can wait for the money to grow big."]
+
+    ### Your First Step
+    * [One specific action. Example: "Set up your automatic transfer of ${profile.currency}${profile.monthlySavingsTarget} today."]
   `;
 
   try {
@@ -57,23 +47,40 @@ export const generateAIExplanation = async (
 export const generateStockSuggestions = async (
   profile: InvestmentProfile,
   investorType: string
-): Promise<{ etf: Omit<StockRecommendation, 'amount'>[], stocks: Omit<StockRecommendation, 'amount'>[] }> => {
+): Promise<{ 
+  allocation: PortfolioAllocation,
+  etf: Omit<StockRecommendation, 'amount'>[], 
+  stocks: Omit<StockRecommendation, 'amount'>[] 
+}> => {
 
   const prompt = `
-    Generate realistic investment recommendations for a ${profile.age}-year-old ${investorType} investor 
-    whose currency is ${profile.currency}.
+    Act as a senior financial strategist.
     
-    Provide two lists:
-    1. 'etf': A basket of 3-4 ETFs or Index Funds (Passive Strategy).
-    2. 'stocks': A basket of 4-5 Individual Stocks (Active Strategy).
-
-    For the currency '${profile.currency}', use appropriate stock tickers (e.g., if '₹' use NSE/BSE tickers, if '$' use NYSE/NASDAQ).
-    The 'allocationPercent' in each list must sum up to 100.
+    1. Determine the optimal Asset Allocation (Equity %, Debt %, Gold %) for this user:
+       - Profile: ${profile.age} years old, ${investorType} Risk Profile.
+       - Goal: ${profile.financialGoal}.
+       - Current Market Context: Assume current real-world market conditions.
+       - Constraint: Equity + Debt + Gold must equal 100.
+    
+    2. Generate investment recommendations for a ${investorType} investor in currency '${profile.currency}'.
+       - Provide TWO lists: 'etf' (3-4 items) and 'stocks' (4-5 items).
+       - If currency is '₹', use NSE/BSE tickers. If '$', use US tickers.
+       - The 'allocationPercent' in each list must sum up to 100.
   `;
 
   const schema = {
     type: Type.OBJECT,
     properties: {
+      allocation: {
+        type: Type.OBJECT,
+        description: "Recommended asset split based on current market data and user profile",
+        properties: {
+            equity: { type: Type.NUMBER, description: "Percentage for Stocks/Equity" },
+            debt: { type: Type.NUMBER, description: "Percentage for Bonds/FDs" },
+            gold: { type: Type.NUMBER, description: "Percentage for Gold/Commodities" }
+        },
+        required: ["equity", "debt", "gold"]
+      },
       etf: {
         type: Type.ARRAY,
         items: {
@@ -101,7 +108,7 @@ export const generateStockSuggestions = async (
         }
       }
     },
-    required: ["etf", "stocks"]
+    required: ["allocation", "etf", "stocks"]
   };
 
   try {
@@ -132,7 +139,7 @@ export const createChatSession = (
   riskScore: number
 ): Chat => {
   const systemInstruction = `
-    You are a friendly and encouraging financial advisor assistant.
+    You are a friendly and encouraging financial advisor assistant for a COMPLETE BEGINNER.
     You are chatting with a user about their specifically generated investment plan.
     
     **Context:**
@@ -143,11 +150,11 @@ export const createChatSession = (
     - Asset Allocation: Equity ${allocation.equity}%, Debt ${allocation.debt}%, Gold ${allocation.gold}%
     
     **Rules:**
+    - Use extremely simple language. No jargon.
+    - Explain concepts like "Equity" as "buying small pieces of companies" and "Debt" as "loaning money safely".
     - Answer questions specifically about *this* plan.
-    - If they ask why Equity is high/low, refer to their risk score and age (${profile.age}).
     - Keep answers concise (max 2-3 sentences) unless asked for details.
     - Be professional but conversational.
-    - Do NOT give specific stock tips (e.g. "Buy Tesla"). Stick to asset classes (Index Funds, Bonds).
   `;
 
   return ai.chats.create({

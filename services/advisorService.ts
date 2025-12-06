@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { InvestmentProfile, AdvisorResult, EquityBreakdown } from '../types';
+import { InvestmentProfile, AdvisorResult, EquityBreakdown, PortfolioAllocation } from '../types';
 import * as riskEngine from './riskEngine';
 import * as geminiService from './geminiService';
 import * as storageService from './storageService';
@@ -10,30 +10,40 @@ export const generatePlan = async (userId: string, profile: InvestmentProfile): 
   const riskScore = riskEngine.calculateRiskScore(profile);
   const investorType = riskEngine.determineInvestorType(riskScore);
   
-  // 2. Get Allocation (Now based on precise score for realism)
-  const allocation = riskEngine.getRecommendedAllocation(riskScore);
-  
-  // 3. Generate Specific Equity Suggestions (AI First, Fallback to Engine)
-  const monthlyEquityInvestment = profile.monthlySavingsTarget * (allocation.equity / 100);
+  // 2. Initialize Allocation (Default to engine fallback first)
+  let allocation: PortfolioAllocation = riskEngine.getRecommendedAllocation(riskScore);
   let equityBreakdown: EquityBreakdown;
 
+  // 3. Generate Specific Equity Suggestions & Allocation (AI First)
   try {
-    // Attempt to get real, AI-generated suggestions (now returns {etf: [], stocks: []})
-    const aiSuggestions = await geminiService.generateStockSuggestions(profile, investorType);
+    // Attempt to get real, AI-generated suggestions AND dynamic allocation
+    const aiData = await geminiService.generateStockSuggestions(profile, investorType);
     
-    // Helper to calculate amounts
+    // OVERRIDE engine allocation with AI allocation if valid
+    if (aiData.allocation && 
+       (aiData.allocation.equity + aiData.allocation.debt + aiData.allocation.gold) === 100) {
+       allocation = aiData.allocation;
+    }
+
+    // Helper to calculate amounts based on the (possibly new) equity allocation
+    const monthlyEquityInvestment = profile.monthlySavingsTarget * (allocation.equity / 100);
+    
     const addAmounts = (list: any[]) => list.map(item => ({
       ...item,
       amount: Math.round(monthlyEquityInvestment * (item.allocationPercent / 100))
     }));
 
     equityBreakdown = {
-      etf: addAmounts(aiSuggestions.etf),
-      stocks: addAmounts(aiSuggestions.stocks)
+      etf: addAmounts(aiData.etf),
+      stocks: addAmounts(aiData.stocks)
     };
+
   } catch (error) {
     console.warn("AI Stock suggestion failed, using fallback engine.", error);
-    // Fallback to static engine
+    
+    // Fallback logic
+    const monthlyEquityInvestment = profile.monthlySavingsTarget * (allocation.equity / 100);
+    
     equityBreakdown = riskEngine.getEquitySuggestions(
       investorType, 
       monthlyEquityInvestment, 
@@ -41,11 +51,10 @@ export const generatePlan = async (userId: string, profile: InvestmentProfile): 
     );
   }
   
-  // 4. Project Growth
+  // 4. Project Growth (Using the final allocation, whether AI or Engine)
   const { projected, inflationAdjustedCorpus, totalInvested, chart } = riskEngine.calculateGrowth(profile, allocation);
 
   // 5. Get AI Explanation
-  // We await this to ensure the dashboard has the full report
   const aiExplanation = await geminiService.generateAIExplanation(
     profile, 
     allocation, 
@@ -60,7 +69,7 @@ export const generatePlan = async (userId: string, profile: InvestmentProfile): 
     riskScore,
     investorType,
     allocation,
-    equityBreakdown, // Now contains both options
+    equityBreakdown, 
     projectedCorpus: projected,
     inflationAdjustedCorpus,
     totalInvested,

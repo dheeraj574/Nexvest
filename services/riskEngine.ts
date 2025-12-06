@@ -63,7 +63,12 @@ export const getRecommendedAllocation = (score: number): PortfolioAllocation => 
 
   // Gold: Fixed small allocation for hedging (5-10%)
   // Lower risk profiles get slightly more gold for stability
-  let gold = score < 50 ? 10 : 5;
+  // Inverse relationship: High score = Low Gold (5%), Low score = High Gold (15%)
+  // Map score 10 -> 15% gold, score 95 -> 5% gold
+  // Linear interpolation: Gold = 15 - ((score - 10) / 85) * 10
+  let gold = Math.round(15 - ((score - 10) / 85) * 10);
+  if (gold < 5) gold = 5;
+  if (gold > 15) gold = 15;
 
   // Debt: The remainder
   let debt = 100 - (equity + gold);
@@ -196,6 +201,7 @@ export const getRecommendedPlatforms = (currency: string): PlatformRecommendatio
     return [
       { name: 'Interactive Brokers', description: 'Global access to 150+ markets.', url: 'https://interactivebrokers.com', badge: 'Global Access', icon: 'fa-globe', color: 'bg-red-600' },
       { name: 'eToro', description: 'Easy access to global markets.', url: 'https://etoro.com', badge: 'User Friendly', icon: 'fa-users', color: 'bg-green-500' },
+      { name: 'Saxo Bank', description: 'Premium banking & trading services.', url: 'https://www.home.saxo', badge: 'Premium', icon: 'fa-building', color: 'bg-slate-800' },
     ];
   }
 };
