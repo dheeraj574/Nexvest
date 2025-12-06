@@ -31,7 +31,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </main>
         <footer className="bg-slate-900 dark:bg-black text-slate-400 py-6 text-center text-sm border-t border-slate-800">
-          <p>© 2024 Nexvest. Hackathon MVP.</p>
+          <p>© 2025 Nexvest. Hackathon MVP.</p>
         </footer>
       </div>
     </div>

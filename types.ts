@@ -48,6 +48,15 @@ export interface EquityBreakdown {
   stocks: StockRecommendation[];
 }
 
+export interface PlatformRecommendation {
+  name: string;
+  description: string;
+  url: string;
+  badge: string;
+  icon: string;
+  color: string;
+}
+
 export interface AdvisorResult {
   id: string;
   date: string;

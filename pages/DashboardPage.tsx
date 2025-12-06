@@ -6,7 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, L
 import { useTheme } from '../context/ThemeContext';
 import { generateAIExplanation } from '../services/geminiService';
 import { getPlanById } from '../services/storageService';
-import { calculateGrowth } from '../services/riskEngine';
+import { calculateGrowth, getRecommendedPlatforms } from '../services/riskEngine';
 import AdvisorChat from '../components/AdvisorChat';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b']; // Indigo, Emerald, Amber
@@ -74,6 +74,7 @@ const DashboardPage: React.FC = () => {
   const inflationAdjusted = simulatedData?.inflationAdjustedCorpus || result.inflationAdjustedCorpus;
   const projectedCorpus = simulatedData?.projected || result.projectedCorpus;
   const totalInvested = simulatedData?.totalInvested || result.totalInvested;
+  const platforms = getRecommendedPlatforms(currency);
 
   const pieData = [
     { name: 'Equity', value: result.allocation.equity },
@@ -125,6 +126,12 @@ const DashboardPage: React.FC = () => {
       text += `${item.symbol.padEnd(12)} | ${item.allocationPercent}%        | ${currency}${item.amount.toLocaleString()}\n`;
       text += `(${item.name} - ${item.sector})\n`;
       text += `--------------------------------------------------------\n`;
+    });
+
+    text += `\nRECOMMENDED PLATFORMS\n`;
+    text += `--------------------\n`;
+    platforms.forEach(p => {
+      text += `• ${p.name}: ${p.description}\n`;
     });
     
     text += `\nAI INSIGHTS\n`;
@@ -270,7 +277,7 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* MAIN CHART */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[500px] flex flex-col transition-colors print-clean print-break-inside-avoid">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[500px] flex flex-col transition-colors print-clean print-break-inside-avoid overflow-hidden">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -458,7 +465,7 @@ const DashboardPage: React.FC = () => {
 
             {/* EQUITY BREAKDOWN CARD (WITH TABS) */}
             {result.equityBreakdown && (
-                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col transition-colors print-clean print-break-inside-avoid">
+                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col transition-colors print-clean print-break-inside-avoid relative z-10">
                     <div className="flex justify-between items-start mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -474,12 +481,14 @@ const DashboardPage: React.FC = () => {
                     {/* TABS - Hidden in Print (only show selected) */}
                     <div className="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-xl mb-6 no-print">
                       <button 
+                        type="button"
                         onClick={() => setPortfolioOption('etf')}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${portfolioOption === 'etf' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                       >
                         Option 1: ETFs (Stable)
                       </button>
                       <button 
+                        type="button"
                         onClick={() => setPortfolioOption('stocks')}
                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${portfolioOption === 'stocks' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                       >
@@ -516,6 +525,47 @@ const DashboardPage: React.FC = () => {
                 </div>
             )}
         </div>
+      </div>
+      
+       {/* PLATFORM RECOMMENDATIONS */}
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print-break-inside-avoid">
+        <div className="md:col-span-3 mb-2">
+           <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+             <i className="fa-solid fa-mobile-screen-button text-indigo-600 dark:text-indigo-400"></i>
+             Where to Invest ({new Date().getFullYear()})
+           </h3>
+           <p className="text-slate-500 dark:text-slate-400 text-sm">Top rated platforms tailored for {currency === '₹' ? 'Indian' : currency === '$' ? 'US' : 'Global'} investors</p>
+        </div>
+        
+        {platforms.map((platform, idx) => (
+           <a 
+             key={idx} 
+             href={platform.url} 
+             target="_blank" 
+             rel="noreferrer" 
+             className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:shadow-lg transition-all group flex flex-col justify-between print-clean no-print-link-decoration"
+           >
+             <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`w-12 h-12 rounded-xl ${platform.color} text-white flex items-center justify-center text-xl shadow-md`}>
+                    <i className={`fa-solid ${platform.icon}`}></i>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md">
+                    {platform.badge}
+                  </span>
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  {platform.name} <i className="fa-solid fa-arrow-up-right-from-square text-xs ml-1 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 font-medium">
+                  {platform.description}
+                </p>
+             </div>
+             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">Visit Platform</span>
+             </div>
+           </a>
+        ))}
       </div>
 
       {/* AI ANALYSIS */}

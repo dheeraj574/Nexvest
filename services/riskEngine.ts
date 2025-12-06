@@ -1,5 +1,5 @@
 
-import { InvestmentProfile, PortfolioAllocation, GrowthDataPoint, RiskTolerance, StockRecommendation, EquityBreakdown } from '../types';
+import { InvestmentProfile, PortfolioAllocation, GrowthDataPoint, RiskTolerance, StockRecommendation, EquityBreakdown, PlatformRecommendation } from '../types';
 
 export const calculateRiskScore = (profile: InvestmentProfile): number => {
   let score = 50; // Base score
@@ -170,6 +170,34 @@ export const getEquitySuggestions = (
     etf: mapWithAmounts(etf),
     stocks: mapWithAmounts(stocks)
   };
+};
+
+export const getRecommendedPlatforms = (currency: string): PlatformRecommendation[] => {
+  if (currency === '₹') {
+    return [
+      { name: 'Zerodha', description: 'Lowest brokerage fees & intuitive Kite app.', url: 'https://zerodha.com', badge: 'Best Overall', icon: 'fa-arrow-trend-up', color: 'bg-blue-500' },
+      { name: 'Groww', description: 'Beginner-friendly UI for Mutual Funds & Stocks.', url: 'https://groww.in', badge: 'Best for Beginners', icon: 'fa-leaf', color: 'bg-emerald-500' },
+      { name: 'INDmoney', description: 'Best for investing in US Stocks from India.', url: 'https://indmoney.com', badge: 'US Stocks', icon: 'fa-earth-americas', color: 'bg-indigo-500' },
+    ];
+  } else if (currency === '$') {
+    return [
+      { name: 'Fidelity', description: 'Top-tier research & zero expense ratio funds.', url: 'https://fidelity.com', badge: 'Top Rated', icon: 'fa-building-columns', color: 'bg-emerald-600' },
+      { name: 'Robinhood', description: 'Commission-free, mobile-first experience.', url: 'https://robinhood.com', badge: 'Mobile App', icon: 'fa-feather', color: 'bg-green-500' },
+      { name: 'Vanguard', description: 'The leader in low-cost index funds.', url: 'https://vanguard.com', badge: 'Long Term', icon: 'fa-shield-halved', color: 'bg-red-700' },
+    ];
+  } else if (currency === '€' || currency === '£') {
+    return [
+      { name: 'eToro', description: 'Social trading & multi-asset platform.', url: 'https://etoro.com', badge: 'Social Trading', icon: 'fa-users-viewfinder', color: 'bg-green-500' },
+      { name: 'DEGIRO', description: 'Low fees for European investors.', url: 'https://degiro.co.uk', badge: 'Low Fees', icon: 'fa-coins', color: 'bg-blue-600' },
+      { name: 'Interactive Brokers', description: 'Professional grade tools for global access.', url: 'https://interactivebrokers.com', badge: 'Pro Tools', icon: 'fa-globe', color: 'bg-red-600' },
+    ];
+  } else {
+    // Global / Default
+    return [
+      { name: 'Interactive Brokers', description: 'Global access to 150+ markets.', url: 'https://interactivebrokers.com', badge: 'Global Access', icon: 'fa-globe', color: 'bg-red-600' },
+      { name: 'eToro', description: 'Easy access to global markets.', url: 'https://etoro.com', badge: 'User Friendly', icon: 'fa-users', color: 'bg-green-500' },
+    ];
+  }
 };
 
 export const calculateGrowth = (
