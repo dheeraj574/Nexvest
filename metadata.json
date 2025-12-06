@@ -1,0 +1,5 @@
+{
+  "name": "AI-Driven Investment Advisor",
+  "description": "A comprehensive investment advisor MVP featuring risk scoring, portfolio allocation, SIP simulation, and AI-powered investment rationale using Google Gemini.",
+  "requestFramePermissions": []
+}

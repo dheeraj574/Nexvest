@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexvest - Intelligent Wealth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              // Custom colors can go here
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'slide-up': 'slideUp 0.5s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideUp: {
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+      .dark ::-webkit-scrollbar-thumb { background: #475569; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+      /* Global Smooth Scroll */
+      html { scroll-behavior: smooth; }
+      
+      .only-print { display: none; }
+
+      @media print {
+        @page { size: auto; margin: 15mm; }
+        
+        /* Reset Body */
+        body { 
+          margin: 0; 
+          padding: 0; 
+          background-color: white !important; 
+          -webkit-print-color-adjust: exact; 
+        }
+        
+        /* Hide UI Elements */
+        nav, footer, .no-print, button, .hidden-print { display: none !important; }
+        .only-print { display: block !important; }
+        
+        /* Layout Adjustments */
+        #root, .container, main { 
+          width: 100% !important; 
+          max-width: 100% !important; 
+          margin: 0 !important; 
+          padding: 0 !important; 
+        }
+        
+        /* Force High Contrast Text */
+        * { color: black !important; text-shadow: none !important; }
+        
+        /* Remove Backgrounds & Shadows */
+        .bg-indigo-600, .bg-slate-800, .bg-gray-900, .dark\:bg-slate-800, .bg-gradient-to-br {
+           background: white !important;
+           color: black !important;
+           border: 1px solid #ccc !important;
+           box-shadow: none !important;
+        }
+        .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl { box-shadow: none !important; }
+        
+        /* Chart Visibility Fixes */
+        /* Force SVG Text to be black */
+        text { fill: black !important; }
+        /* Force Chart Lines to be visible grey */
+        line, path { stroke: #666 !important; } 
+        /* Specific Recharts Grid Lines */
+        .recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line { stroke: #ddd !important; }
+        /* Areas should have opacity */
+        .recharts-area-area { fill-opacity: 0.3 !important; }
+        
+        /* Specific Classes */
+        .print-clean {
+          background: white !important;
+          color: black !important;
+          border: 1px solid #ccc !important;
+        }
+        
+        /* Break Handling */
+        .print-break-inside-avoid { break-inside: avoid; }
+        h1, h2, h3 { break-after: avoid; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "uuid": "https://aistudiocdn.com/uuid@^13.0.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>
