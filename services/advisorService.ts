@@ -59,7 +59,8 @@ export const generatePlan = async (userId: string, profile: InvestmentProfile): 
     profile, 
     allocation, 
     investorType, 
-    projected
+    projected,
+    equityBreakdown // Pass equityBreakdown for more detailed analysis
   );
 
   const result: AdvisorResult = {

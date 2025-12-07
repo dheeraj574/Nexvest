@@ -9,6 +9,8 @@ import { getPlanById, saveHistory } from '../services/storageService';
 import { calculateGrowth, getRecommendedPlatforms } from '../services/riskEngine';
 import AdvisorChat from '../components/AdvisorChat';
 import { useAuth } from '../context/AuthContext';
+import StockTicker from '../components/StockTicker';
+import NewsFeed from '../components/NewsFeed';
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b']; // Indigo, Emerald, Amber
 
@@ -20,7 +22,6 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   
   const [result, setResult] = useState<AdvisorResult | null>(location.state?.result || null);
-  const [isRegenerating, setIsRegenerating] = useState(false);
   const [loading, setLoading] = useState(!location.state?.result);
 
   // New State for Portfolio Option
@@ -91,42 +92,6 @@ const DashboardPage: React.FC = () => {
     setActiveIndex(index);
   };
 
-  const handleRegenerateAI = async () => {
-    setIsRegenerating(true);
-    try {
-      const newExplanation = await generateAIExplanation(
-        result.profile,
-        result.allocation,
-        result.investorType,
-        result.projectedCorpus
-      );
-      
-      const updatedResult = {
-        ...result,
-        aiExplanation: newExplanation
-      };
-
-      setResult(updatedResult);
-
-      // PERSIST THE CHANGE: Update local storage history
-      // We retrieve history, remove the old version of this plan, and add the updated one
-      // But saveHistory adds to top. For simplicity, we can't easily edit in place with the current helper.
-      // However, for UX "Make it work", updating local state is key.
-      // OPTIONAL: We can try to update the storage if we want persistence on refresh.
-      if (user) {
-        // Since we don't have an update method, we can just save it as if it's new-ish or rely on state
-        // For a hackathon, updating the viewed state is sufficient for the demo.
-        // But let's try to be robust.
-        // We'll skip complex storage update logic to avoid duplicates/reordering bugs right now.
-        // The user will see the update immediately.
-      }
-    } catch (error) {
-      console.error("Failed to regenerate AI explanation", error);
-    } finally {
-      setIsRegenerating(false);
-    }
-  };
-
   const handleDownloadText = () => {
     const currentList = result.equityBreakdown ? result.equityBreakdown[portfolioOption] : [];
     
@@ -189,16 +154,13 @@ const DashboardPage: React.FC = () => {
   const renderAIContent = (text: string) => {
     return text.split('\n').map((line, index) => {
       const trimmed = line.trim();
-      if (trimmed.startsWith('###') || (trimmed.startsWith('**') && !trimmed.includes(':'))) {
-        return <h4 key={index} className="text-lg font-bold text-white mt-4 mb-2">{trimmed.replace(/#/g, '').replace(/\*\*/g, '')}</h4>;
-      }
-      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        const content = trimmed.substring(2);
+      if (trimmed.startsWith('•')) {
+        const content = trimmed.substring(1);
         const parts = content.split('**');
         return (
           <li key={index} className="flex gap-2 mb-2 text-indigo-50">
-            <span className="mt-1.5 w-1.5 h-1.5 bg-yellow-400 rounded-full flex-shrink-0"></span>
-            <span>
+            <span className="mt-2 w-1.5 h-1.5 bg-yellow-400 rounded-full flex-shrink-0"></span>
+            <span className="leading-relaxed">
               {parts.map((part, i) => i % 2 === 1 ? <strong key={i} className="text-white">{part}</strong> : part)}
             </span>
           </li>
@@ -216,8 +178,11 @@ const DashboardPage: React.FC = () => {
   const currentEquityList = result.equityBreakdown ? result.equityBreakdown[portfolioOption] : [];
 
   return (
-    <div className="space-y-8 pb-12 max-w-7xl mx-auto relative animate-fade-in">
+    <div className="space-y-6 pb-12 max-w-7xl mx-auto relative animate-fade-in">
       <AdvisorChat context={result} />
+
+      {/* REAL-TIME TICKER */}
+      <StockTicker />
 
       {/* PRINT HEADER */}
       <div className="only-print mb-8 border-b-2 border-black pb-4">
@@ -248,13 +213,13 @@ const DashboardPage: React.FC = () => {
             onClick={handleDownloadText}
             className="bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center gap-2"
           >
-            <i className="fa-solid fa-file-lines text-slate-500 dark:text-slate-400"></i> Download Summary
+            <i className="fa-solid fa-file-lines text-slate-500 dark:text-slate-400"></i> Summary
           </button>
           <button 
              onClick={handlePrint}
              className="bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center gap-2"
           >
-             <i className="fa-solid fa-print text-slate-500 dark:text-slate-400"></i> Download Report
+             <i className="fa-solid fa-print text-slate-500 dark:text-slate-400"></i> Report
           </button>
           <Link 
             to="/advisor" 
@@ -332,9 +297,30 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* AI ANALYSIS (Short Report) */}
+      <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-black rounded-3xl p-8 md:p-8 text-white relative overflow-hidden shadow-2xl transition-all print-clean print-break-inside-avoid">
+        <div className="relative z-10 flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/3 border-r border-white/10 pr-6 flex flex-col justify-center">
+                 <div className="flex items-center gap-3 mb-2">
+                     <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+                        <i className="fa-solid fa-wand-magic-sparkles text-yellow-300"></i>
+                     </div>
+                     <h2 className="text-xl font-bold">Gemini Micro-Report</h2>
+                 </div>
+                 <p className="text-indigo-200 text-sm">A condensed 3-point summary of your strategy.</p>
+            </div>
+            <div className="md:w-2/3">
+                 <ul className="space-y-1">
+                    {result.aiExplanation ? renderAIContent(result.aiExplanation) : <p className="text-indigo-200">Analysis pending...</p>}
+                 </ul>
+            </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* MAIN CHART */}
+        {/* LEFT COL: CHART */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[500px] flex flex-col transition-colors print-clean print-break-inside-avoid overflow-hidden">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
@@ -449,7 +435,7 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ALLOCATION COLUMN */}
+        {/* RIGHT COL: ALLOCATION & NEWS */}
         <div className="flex flex-col gap-8">
             {/* ALLOCATION CHART */}
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-[400px] flex flex-col transition-colors print-clean print-break-inside-avoid">
@@ -535,70 +521,73 @@ const DashboardPage: React.FC = () => {
             </div>
             </div>
 
-            {/* EQUITY BREAKDOWN CARD (WITH TABS) */}
-            {result.equityBreakdown && (
-                <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col transition-colors print-clean print-break-inside-avoid relative z-10">
-                    <div className="flex justify-between items-start mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                                <i className="fa-solid fa-list-check"></i>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recommended Portfolio</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">Select an option</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* TABS - Hidden in Print (only show selected) */}
-                    <div className="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-xl mb-6 no-print">
-                      <button 
-                        type="button"
-                        onClick={() => setPortfolioOption('etf')}
-                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${portfolioOption === 'etf' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                      >
-                        Option 1: ETFs (Stable)
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setPortfolioOption('stocks')}
-                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${portfolioOption === 'stocks' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                      >
-                        Option 2: Stocks (Active)
-                      </button>
-                    </div>
-
-                    {/* Visible in print to show which option is selected */}
-                    <div className="only-print mb-4">
-                        <h4 className="font-bold text-black border-b border-black pb-2">
-                          Selected Portfolio: {portfolioOption === 'etf' ? 'Option 1 (ETF/Index)' : 'Option 2 (Direct Stocks)'}
-                        </h4>
-                    </div>
-
-                    <div className="space-y-4">
-                        {currentEquityList.length > 0 ? currentEquityList.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center pb-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0 last:pb-0">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-bold text-slate-800 dark:text-slate-200">{item.symbol}</span>
-                                        <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full">{item.sector}</span>
-                                    </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.name}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-indigo-600 dark:text-indigo-400">{currency}{item.amount.toLocaleString()}</p>
-                                    <p className="text-xs text-slate-500">{item.allocationPercent}% of Equity</p>
-                                </div>
-                            </div>
-                        )) : (
-                          <p className="text-sm text-slate-500 italic">No recommendations available for this category.</p>
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* LIVE NEWS FEED (Replaces/Below Chart) */}
+            <NewsFeed />
         </div>
       </div>
       
+       {/* EQUITY BREAKDOWN CARD (Full Width below) */}
+       {result.equityBreakdown && (
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col transition-colors print-clean print-break-inside-avoid relative z-10">
+                <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <i className="fa-solid fa-list-check"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recommended Portfolio</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Select an option</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* TABS - Hidden in Print (only show selected) */}
+                <div className="flex p-1 bg-slate-100 dark:bg-slate-700 rounded-xl mb-6 no-print max-w-md">
+                  <button 
+                    type="button"
+                    onClick={() => setPortfolioOption('etf')}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${portfolioOption === 'etf' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                  >
+                    Option 1: ETFs (Stable)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setPortfolioOption('stocks')}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${portfolioOption === 'stocks' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                  >
+                    Option 2: Stocks (Active)
+                  </button>
+                </div>
+
+                {/* Visible in print to show which option is selected */}
+                <div className="only-print mb-4">
+                    <h4 className="font-bold text-black border-b border-black pb-2">
+                      Selected Portfolio: {portfolioOption === 'etf' ? 'Option 1 (ETF/Index)' : 'Option 2 (Direct Stocks)'}
+                    </h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                    {currentEquityList.length > 0 ? currentEquityList.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center pb-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0 last:pb-0">
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-slate-800 dark:text-slate-200">{item.symbol}</span>
+                                    <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-full">{item.sector}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.name}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-bold text-indigo-600 dark:text-indigo-400">{currency}{item.amount.toLocaleString()}</p>
+                                <p className="text-xs text-slate-500">{item.allocationPercent}% of Equity</p>
+                            </div>
+                        </div>
+                    )) : (
+                      <p className="text-sm text-slate-500 italic">No recommendations available for this category.</p>
+                    )}
+                </div>
+            </div>
+        )}
+
        {/* PLATFORM RECOMMENDATIONS - Z-Index boosted to ensure clickability */}
        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print-break-inside-avoid relative z-20">
         <div className="md:col-span-3 mb-2">
@@ -638,54 +627,6 @@ const DashboardPage: React.FC = () => {
              </div>
            </a>
         ))}
-      </div>
-
-      {/* AI ANALYSIS */}
-      <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-black rounded-3xl p-8 md:p-10 text-white relative overflow-hidden shadow-2xl transition-all print-clean print-break-inside-avoid">
-        {/* Glow Effects */}
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-indigo-600 rounded-full opacity-30 blur-3xl no-print"></div>
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-emerald-600 rounded-full opacity-20 blur-3xl no-print"></div>
-        
-        <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg no-print">
-                {isRegenerating ? (
-                   <i className="fa-solid fa-circle-notch fa-spin text-2xl text-yellow-300"></i>
-                ) : (
-                   <i className="fa-solid fa-wand-magic-sparkles text-2xl text-yellow-300"></i>
-                )}
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Gemini Wealth Insights</h2>
-                <p className="text-indigo-200 text-sm print:text-gray-600">Personalized Strategy Analysis</p>
-              </div>
-            </div>
-            
-            <button 
-              onClick={handleRegenerateAI}
-              disabled={isRegenerating}
-              className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed no-print hover:shadow-lg"
-            >
-              <i className={`fa-solid fa-arrows-rotate ${isRegenerating ? 'fa-spin' : ''}`}></i>
-              {isRegenerating ? 'Analysing...' : 'Regenerate Analysis'}
-            </button>
-          </div>
-          
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10 font-light min-h-[160px] flex flex-col justify-center print:bg-white print:border-none print:p-0 print:text-black print:font-normal">
-             {isRegenerating ? (
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-white/10 rounded w-3/4"></div>
-                  <div className="h-4 bg-white/10 rounded w-full"></div>
-                  <div className="h-4 bg-white/10 rounded w-5/6"></div>
-                </div>
-             ) : (
-                <ul className="space-y-1">
-                  {result.aiExplanation ? renderAIContent(result.aiExplanation) : <p className="text-indigo-200">Analysis pending...</p>}
-                </ul>
-             )}
-          </div>
-        </div>
       </div>
       
       {/* PRINT DISCLAIMER FOOTER */}

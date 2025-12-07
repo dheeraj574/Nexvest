@@ -8,27 +8,33 @@ export const generateAIExplanation = async (
   profile: InvestmentProfile,
   allocation: PortfolioAllocation,
   investorType: string,
-  projectedCorpus: number
+  projectedCorpus: number,
+  equityBreakdown?: EquityBreakdown
 ): Promise<string> => {
   
+  let stocksContext = "";
+  if (equityBreakdown) {
+    // Combine ETFs and Stocks for context
+    const allAssets = [...equityBreakdown.etf, ...equityBreakdown.stocks];
+    // Take top 5 assets with sector info to give AI enough context
+    const assetDetails = allAssets.slice(0, 5).map(s => `${s.symbol} (${s.sector})`).join(', ');
+    stocksContext = `Recommended Assets: ${assetDetails}`;
+  }
+
   const prompt = `
-    You are a friendly financial guide explaining an investment plan to a beginner (Explain Like I'm 5).
-    Do NOT use big financial words. Keep it extremely simple.
-    Start directly with the first header.
-    
-    **User:** Age ${profile.age}, Goal: ${profile.financialGoal}
-    **Plan:** Equity ${allocation.equity}%, Debt ${allocation.debt}%, Gold ${allocation.gold}%
+    Act as a knowledgeable financial advisor.
+    Analyze this investment plan for a ${profile.age}-year-old user with the goal: "${profile.financialGoal}".
+    Risk Profile: ${investorType}.
+    Allocation: ${allocation.equity}% Equity, ${allocation.debt}% Debt, ${allocation.gold}% Gold.
+    ${stocksContext}
 
-    Return exactly these 3 brief sections formatted with Markdown headers:
+    **Strict Output Format (4 bullet points):**
+    • **Strategy:** [Short, catchy strategy name]
+    • **Why It Fits:** [Briefly explain alignment with age/risk]
+    • **Asset Spotlight:** [Specifically mention 1-2 assets from the provided list. Explain their sector relevance or why they were chosen (e.g. "Tech for growth", "Banking for stability"). Be specific.]
+    • **Action:** [One simple next step]
 
-    ### The Simple Plan
-    [One simple sentence. Example: "We are buying pieces of big companies so your money grows fast."]
-
-    ### Why this fits you
-    [One simple sentence. Example: "Since you are young, you can wait for the money to grow big."]
-
-    ### Your First Step
-    * [One specific action. Example: "Set up your automatic transfer of ${profile.currency}${profile.monthlySavingsTarget} today."]
+    Use clear, accessible language. Total length under 100 words.
   `;
 
   try {
