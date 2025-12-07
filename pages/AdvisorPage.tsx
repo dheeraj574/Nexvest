@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { RiskTolerance, InvestmentProfile } from '../types';
 import { generatePlan } from '../services/advisorService';
+import InfoTooltip from '../components/InfoTooltip';
 
 // Helper type to handle form inputs where numbers can be empty strings temporarily while typing
 type InvestmentProfileForm = {
@@ -182,7 +183,10 @@ const AdvisorPage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Financial Goal</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                  Financial Goal
+                  <InfoTooltip text="The main objective for your investment, like buying a home or retiring comfortably." />
+                </label>
                 <div className="relative">
                   <i className="fa-solid fa-bullseye absolute left-4 top-3.5 text-slate-400"></i>
                   <select
@@ -299,7 +303,10 @@ const AdvisorPage: React.FC = () => {
             </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Monthly Investment (SIP)</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                    Monthly Investment (SIP)
+                    <InfoTooltip text="Systematic Investment Plan (SIP): The fixed amount you commit to saving and investing every single month." />
+                  </label>
                   <div className="relative">
                     <i className="fa-solid fa-money-bill-wave absolute left-4 top-3.5 text-slate-400"></i>
                     <input
@@ -318,7 +325,10 @@ const AdvisorPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">Risk Tolerance</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                    Risk Tolerance
+                    <InfoTooltip text="How comfortable are you with market ups and downs? High risk can mean higher returns but more volatility." />
+                  </label>
                   <div className="relative">
                     <i className="fa-solid fa-shield-halved absolute left-4 top-3.5 text-slate-400"></i>
                     <select
@@ -339,6 +349,7 @@ const AdvisorPage: React.FC = () => {
                   <div className="flex justify-between items-end mb-4">
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Investment Horizon
+                      <InfoTooltip text="How long you plan to keep your money invested. Longer horizons generally allow for more aggressive growth strategies." />
                     </label>
                     <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
                       {formData.investmentHorizonYears === '' ? '-' : `${formData.investmentHorizonYears} Years`}
