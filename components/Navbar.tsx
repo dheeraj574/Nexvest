@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -24,9 +25,9 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xl hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center shadow-md shadow-indigo-200 dark:shadow-none">
-              <i className="fa-solid fa-chart-line"></i>
+              <i className="fa-solid fa-fish-hook"></i>
             </div>
-            <span className="tracking-tight">Nexvest</span>
+            <span className="tracking-tight">Jack</span>
           </Link>
 
           {/* Desktop Menu */}

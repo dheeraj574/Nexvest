@@ -1,13 +1,14 @@
+
 import React from 'react';
 
 const AboutPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors duration-300">
-      <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 transition-colors">About Nexvest</h1>
+      <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 transition-colors">About Jack</h1>
       
       <div className="prose prose-slate dark:prose-invert max-w-none text-black dark:text-slate-300 font-medium transition-colors">
         <p>
-          Nexvest is a hackathon MVP designed to demonstrate the power of Generative AI in personal finance. 
+          Jack is a hackathon MVP designed to demonstrate the power of Generative AI in personal finance. 
           By combining traditional financial modeling (Risk Assessment, Asset Allocation) with Google Gemini's reasoning capabilities, 
           we provide users with not just numbers, but understanding.
         </p>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -100,10 +101,10 @@ const AdvisorPage: React.FC = () => {
       const messages = [
         "Analyzing financial profile...",
         "Calculating risk score...",
-        "Consulting Gemini AI...",
+        "Consulting Jack's AI...",
         "Optimizing asset allocation...",
         "Projecting future wealth...",
-        "Finalizing report..."
+        "Finalizing the map..."
       ];
       let i = 0;
       setLoadingMsg(messages[0]);
@@ -153,12 +154,12 @@ const AdvisorPage: React.FC = () => {
             <div className="w-24 h-24 border-4 border-indigo-100 dark:border-indigo-900/50 border-t-indigo-600 dark:border-t-indigo-500 rounded-full animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900 rounded-full flex items-center justify-center animate-pulse">
-                <i className="fa-solid fa-brain text-indigo-600 dark:text-indigo-400 text-xl"></i>
+                <i className="fa-solid fa-fish-hook text-indigo-600 dark:text-indigo-400 text-xl"></i>
               </div>
             </div>
           </div>
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{loadingMsg}</h3>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Please wait while we build your plan</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Please wait while we chart your course</p>
         </div>
       )}
 

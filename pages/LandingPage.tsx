@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -44,7 +45,7 @@ const LandingPage: React.FC = () => {
           <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-8 transition-colors leading-tight">
             Wealth Management <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">
-              Reimagined by Nexvest
+              Reimagined by Jack
             </span>
           </h1>
           
@@ -264,7 +265,7 @@ const LandingPage: React.FC = () => {
           <div className="space-y-4">
             <FAQItem 
               question="Is this financial advice?"
-              answer="No. Nexvest provides educational insights based on standard financial models. Always consult a certified financial planner for personal advice."
+              answer="No. Jack provides educational insights based on standard financial models. Always consult a certified financial planner for personal advice."
             />
             <FAQItem 
               question="Is my data safe?"

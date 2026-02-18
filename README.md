@@ -1,4 +1,5 @@
-# 💎 Nexvest: Intelligent Wealth Management
+
+# 💎 Jack: AI Investment Advisor
 
 > **Winner of the "Best AI FinTech" Category (Target)**  
 > *An AI-driven investment advisor that democratizes personalized wealth strategies using Google Gemini 2.5.*
@@ -7,12 +8,12 @@
 
 ## 🚀 The Problem
 Financial advice is expensive. Most people either rely on generic "Rule of Thumb" advice or get overwhelmed by complex market data.  
-**Nexvest** solves this by offering **Institutional-Grade Financial Planning** for free, instantly, and explained in plain English by AI.
+**Jack** solves this by offering **Institutional-Grade Financial Planning** for free, instantly, and explained in plain English by AI.
 
 ## 💡 The Solution
-Nexvest is a client-side AI application that combines **Traditional Financial Modeling** (Risk Scoring, Asset Allocation) with **Generative AI** (Reasoning, Contextual Explanation).
+Jack is a client-side AI application that combines **Traditional Financial Modeling** (Risk Scoring, Asset Allocation) with **Generative AI** (Reasoning, Contextual Explanation).
 
-Unlike simple calculators, Nexvest understands *who* you are (Age, Goals, Risk Tolerance) and builds a custom portfolio split between Equity, Debt, and Gold, backed by real-time simulation logic.
+Unlike simple calculators, Jack understands *who* you are (Age, Goals, Risk Tolerance) and builds a custom portfolio split between Equity, Debt, and Gold, backed by real-time simulation logic.
 
 ---
 
@@ -60,8 +61,8 @@ Unlike simple calculators, Nexvest understands *who* you are (Age, Goals, Risk T
 
 1. **Clone the repo**
    ```sh
-   git clone https://github.com/yourusername/nexvest.git
-   cd nexvest
+   git clone https://github.com/yourusername/jack.git
+   cd jack
    ```
 
 2. **Install dependencies**
@@ -104,8 +105,8 @@ To skip the registration flow during testing, use the **"One-Click Demo Login"**
 ---
 
 ## ⚖️ Disclaimer
-*Nexvest is a prototype for educational purposes. It uses standard financial models (Equity ~12%, Debt ~7%) for projections. Always consult a certified financial planner before investing real money.*
+*Jack is a prototype for educational purposes. It uses standard financial models (Equity ~12%, Debt ~7%) for projections. Always consult a certified financial planner before investing real money.*
 
 ---
 
-Made with ❤️ by the Nexvest Team.
+Made with ❤️ by the Jack Team.
