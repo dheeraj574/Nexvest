@@ -2,7 +2,19 @@
 import { GoogleGenAI, Chat, Type } from "@google/genai";
 import { InvestmentProfile, PortfolioAllocation, StockRecommendation, EquityBreakdown } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: 'AIzaSyBT94ZS6t85fvOcGa27CbBLO1qlvhoaPTU' });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// Real-world Historical Dataset for In-Context Training
+const MARKET_HISTORY_DATASET = `
+HISTORICAL PERFORMANCE DATASET (1990-2024):
+- Equities (S&P 500 / Nifty 50): Avg 10-12% CAGR. High volatility (Std Dev 15%). 
+  Notable Crashes: 2000 Dot-com (-45%), 2008 Financial Crisis (-50%), 2020 COVID (-30% initial).
+- Debt (10-Yr Treasury / Long-term Bonds): Avg 5-7% CAGR. Low volatility (Std Dev 4%).
+  Behavior: Inversely correlated to equities during crises (safe haven).
+- Gold (Spot Price): Avg 8-9% CAGR. Medium volatility.
+  Behavior: Acts as an inflation hedge and "Crisis Alpha" during extreme equity drawdowns.
+- Inflation: Avg 3-6% globally over this period.
+`;
 
 export const generateAIExplanation = async (
   profile: InvestmentProfile,
@@ -14,39 +26,48 @@ export const generateAIExplanation = async (
   
   let stocksContext = "";
   if (equityBreakdown) {
-    // Combine ETFs and Stocks for context
     const allAssets = [...equityBreakdown.etf, ...equityBreakdown.stocks];
-    // Take top 5 assets with sector info to give AI enough context
     const assetDetails = allAssets.slice(0, 5).map(s => `${s.symbol} (${s.sector})`).join(', ');
     stocksContext = `Recommended Assets: ${assetDetails}`;
   }
 
   const prompt = `
-    Act as a knowledgeable financial advisor.
-    Analyze this investment plan for a ${profile.age}-year-old user with the goal: "${profile.financialGoal}".
-    Risk Profile: ${investorType}.
-    Allocation: ${allocation.equity}% Equity, ${allocation.debt}% Debt, ${allocation.gold}% Gold.
+    Act as a senior Quantitative Financial Analyst.
+    
+    GROUNDING DATASET:
+    ${MARKET_HISTORY_DATASET}
+
+    USER PROFILE:
+    - Age: ${profile.age}
+    - Goal: "${profile.financialGoal}"
+    - Risk Profile: ${investorType}
+    - Allocation: ${allocation.equity}% Equity, ${allocation.debt}% Debt, ${allocation.gold}% Gold.
     ${stocksContext}
 
-    **Strict Output Format (4 bullet points):**
-    • **Strategy:** [Short, catchy strategy name]
-    • **Why It Fits:** [Briefly explain alignment with age/risk]
-    • **Asset Spotlight:** [Specifically mention 1-2 assets from the provided list. Explain their sector relevance or why they were chosen (e.g. "Tech for growth", "Banking for stability"). Be specific.]
-    • **Action:** [One simple next step]
+    TASK:
+    Analyze the user's plan by "training" your response on the GROUNDING DATASET provided.
+    1. Evaluate how this specific ${allocation.equity}/${allocation.debt}/${allocation.gold} split would have survived the 2008 Financial Crisis.
+    2. Provide a rationale based on historical sector trends for the recommended assets.
 
-    Use clear, accessible language. Total length under 100 words.
+    STRICT OUTPUT FORMAT (4 bullet points):
+    • **Strategy:** [Catchy name grounded in history]
+    • **Historical Backtest:** [Briefly mention how this allocation mix traditionally handles major market drawdowns based on the dataset]
+    • **Asset Spotlight:** [Rationale for 1-2 assets based on their sector's historical resilience or growth potential]
+    • **Action:** [One precise next step]
+
+    Use professional, authoritative language. Keep it under 110 words.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview', // Using latest Gemini 3 Flash
       contents: prompt,
     });
     
     return response.text || "AI analysis unavailable.";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "AI analysis is currently unavailable. However, your asset allocation is based on sound financial principles.";
+    return "AI analysis is currently unavailable. Your plan follows historical best practices for asset diversification.";
   }
 };
 
@@ -60,12 +81,11 @@ export const generateStockSuggestions = async (
 }> => {
 
   const prompt = `
-    Act as a senior financial strategist.
+    Act as a senior financial strategist. Use current real-world market data.
     
     1. Determine the optimal Asset Allocation (Equity %, Debt %, Gold %) for this user:
        - Profile: ${profile.age} years old, ${investorType} Risk Profile.
        - Goal: ${profile.financialGoal}.
-       - Current Market Context: Assume current real-world market conditions.
        - Constraint: Equity + Debt + Gold must equal 100.
     
     2. Generate investment recommendations for a ${investorType} investor in currency '${profile.currency}'.
@@ -79,11 +99,10 @@ export const generateStockSuggestions = async (
     properties: {
       allocation: {
         type: Type.OBJECT,
-        description: "Recommended asset split based on current market data and user profile",
         properties: {
-            equity: { type: Type.NUMBER, description: "Percentage for Stocks/Equity" },
-            debt: { type: Type.NUMBER, description: "Percentage for Bonds/FDs" },
-            gold: { type: Type.NUMBER, description: "Percentage for Gold/Commodities" }
+            equity: { type: Type.NUMBER },
+            debt: { type: Type.NUMBER },
+            gold: { type: Type.NUMBER }
         },
         required: ["equity", "debt", "gold"]
       },
@@ -92,10 +111,10 @@ export const generateStockSuggestions = async (
         items: {
           type: Type.OBJECT,
           properties: {
-            symbol: { type: Type.STRING, description: "Stock Ticker e.g. AAPL or HDFCBANK" },
-            name: { type: Type.STRING, description: "Full Name" },
+            symbol: { type: Type.STRING },
+            name: { type: Type.STRING },
             sector: { type: Type.STRING },
-            allocationPercent: { type: Type.NUMBER, description: "Percentage of equity portion, e.g. 25" }
+            allocationPercent: { type: Type.NUMBER }
           },
           required: ["symbol", "name", "sector", "allocationPercent"]
         }
@@ -119,7 +138,7 @@ export const generateStockSuggestions = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -137,36 +156,22 @@ export const generateStockSuggestions = async (
   }
 };
 
-
-// NEW: Chat Session Factory
 export const createChatSession = (
   profile: InvestmentProfile,
   allocation: PortfolioAllocation,
   riskScore: number
 ): Chat => {
   const systemInstruction = `
-    You are a friendly and encouraging financial advisor assistant for a COMPLETE BEGINNER.
-    You are chatting with a user about their specifically generated investment plan.
+    You are a friendly financial advisor.
+    You are grounded in a 35-year historical market dataset.
+    Plan: Goal "${profile.financialGoal}", Monthly ${profile.currency}${profile.monthlySavingsTarget}, Risk ${profile.riskTolerance} (${riskScore}/100).
+    Allocation: Equity ${allocation.equity}%, Debt ${allocation.debt}%, Gold ${allocation.gold}%.
     
-    **Context:**
-    - Goal: ${profile.financialGoal}
-    - Monthly Investment: ${profile.currency}${profile.monthlySavingsTarget}
-    - Horizon: ${profile.investmentHorizonYears} years
-    - Risk Profile: ${profile.riskTolerance} (Score: ${riskScore}/100)
-    - Asset Allocation: Equity ${allocation.equity}%, Debt ${allocation.debt}%, Gold ${allocation.gold}%
-    
-    **Rules:**
-    - Use extremely simple language. No jargon.
-    - Explain concepts like "Equity" as "buying small pieces of companies" and "Debt" as "loaning money safely".
-    - Answer questions specifically about *this* plan.
-    - Keep answers concise (max 2-3 sentences) unless asked for details.
-    - Be professional but conversational.
+    Always explain your reasoning using historical context when asked.
   `;
 
   return ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction,
-    },
+    model: 'gemini-3-flash-preview',
+    config: { systemInstruction },
   });
 };

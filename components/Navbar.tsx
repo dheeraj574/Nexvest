@@ -77,42 +77,97 @@ const Navbar: React.FC = () => {
           <div className="flex items-center gap-4 md:hidden">
             <button 
               onClick={toggleTheme}
-              className="text-slate-700 dark:text-white"
+              className="p-2 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
             >
               <i className={`fa-solid ${theme === 'dark' ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
             </button>
             <button 
-              className="text-slate-700 dark:text-white"
+              className="p-2 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
               onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle Menu"
             >
-              <i className={`fa-solid ${isOpen ? 'fa-xmark' : 'fa-bars'} text-2xl`}></i>
+              <i className={`fa-solid ${isOpen ? 'fa-xmark' : 'fa-bars'} text-2xl transition-transform duration-300 ${isOpen ? 'rotate-90' : 'rotate-0'}`}></i>
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t border-slate-100 dark:border-slate-800 space-y-2 animate-fade-in">
-            <Link to="/about" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">About</Link>
+        {/* Mobile Menu with Smooth Transition */}
+        <div 
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+            <Link 
+              to="/about" 
+              onClick={handleMobileLinkClick} 
+              className="flex items-center gap-3 px-4 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                 <i className="fa-solid fa-circle-info"></i>
+              </div>
+              About
+            </Link>
+            
             {user ? (
               <>
-                <Link to="/advisor" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">New Plan</Link>
-                <Link to="/history" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">History</Link>
+                <Link 
+                  to="/advisor" 
+                  onClick={handleMobileLinkClick} 
+                  className="flex items-center gap-3 px-4 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                    <i className="fa-solid fa-plus"></i>
+                  </div>
+                  New Plan
+                </Link>
+                <Link 
+                  to="/history" 
+                  onClick={handleMobileLinkClick} 
+                  className="flex items-center gap-3 px-4 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <i className="fa-solid fa-clock-rotate-left"></i>
+                  </div>
+                  History
+                </Link>
+                <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
                 <button 
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl font-bold"
+                  className="w-full text-left flex items-center gap-3 px-4 py-3.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl font-bold transition-colors"
                 >
+                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center text-red-500">
+                    <i className="fa-solid fa-arrow-right-from-bracket"></i>
+                  </div>
                   Logout ({user.username})
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" onClick={handleMobileLinkClick} className="block px-4 py-3 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl font-medium">Login</Link>
-                <Link to="/register" onClick={handleMobileLinkClick} className="block px-4 py-3 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl">Register</Link>
+                <Link 
+                  to="/login" 
+                  onClick={handleMobileLinkClick} 
+                  className="flex items-center gap-3 px-4 py-3.5 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors"
+                >
+                   <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                     <i className="fa-solid fa-right-to-bracket"></i>
+                   </div>
+                   Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  onClick={handleMobileLinkClick} 
+                  className="flex items-center gap-3 px-4 py-3.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl font-bold shadow-md shadow-indigo-200 dark:shadow-none transition-all mt-2"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">
+                     <i className="fa-solid fa-user-plus"></i>
+                  </div>
+                  Register
+                </Link>
               </>
             )}
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );
